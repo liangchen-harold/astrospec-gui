@@ -5,16 +5,13 @@
 优势：
 - 基于亚像素插值的波长校正算法
 - 附加功能，如颜色映射
-- 通过算法拟合并去除杂散光 ([查看对比](#杂散光矫正算法效果))
+- 通过算法拟合并去除杂散光
 
 ## 算法
 
 [astrospec](https://github.com/liangchen-harold/astrospec)     - 核心算法库
-astrospec-gui - 当前库，是对astrospec的简单封装，可以通过图形界面使用
 
-## 杂散光矫正算法效果
-![correct stray light](docs/2024-05-28_1306.gif)
-![correct stray light](docs/2024-05-28-0549_3.gif)
+astrospec-gui - 当前库，是对astrospec的简单封装，可以通过图形界面使用
 
 ## 参考
 1. [SolEx](http://www.astrosurf.com/solex/sol-ex-presentation-en.html) - 法国友人Valerie Desnoux的开源光谱仪，提供了3D打印文件，另外还有非常详细的介绍，值得细读

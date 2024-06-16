@@ -7,17 +7,14 @@ This project is used to reconstruct image from raw video captured by the [spectr
 **Highlights**
 - Algorithm with sub-pixel interpolation for wavelength correction 
 - Additional features such as color mapping
-- Advanced algorithm to remove stray light ([view comparison](#Stray-light-remove))
+- Advanced algorithm to remove stray light
 
 
 ## Algorithm
 
 [astrospec](https://github.com/liangchen-harold/astrospec)     - core algorithm
-astrospec-gui - current repo, a GUI wrapper for astrospec
 
-## Stray light remove
-![correct stray light](docs/2024-05-28_1306.gif)
-![correct stray light](docs/2024-05-28-0549_3.gif)
+astrospec-gui - current repo, a GUI wrapper for astrospec
 
 ## Reference
 1. [SolEx](http://www.astrosurf.com/solex/sol-ex-presentation-en.html) - The design of a DIY spectroheliograph by Valerie Desnoux, with very detailed introduction, which is worth reading carefully.
