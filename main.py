@@ -51,14 +51,14 @@ def raw_file_to_file_ext(file, output_file, output_configs={'img': {'color_map_n
             if verbose > 1:
                 print(f'write to {_file} (i={i}, shift={shifts[i]})')
             if conf['raw']:
-                cv2.imwrite(_file, np.clip(img, 0, 65535).astype(np.uint16))
+                cv2.imencode(f'.{_file.split(".")[-1]}', np.clip(img, 0, 65535).astype(np.uint16))[1].tofile(_file)
             else:
                 _img = ass.postproc.normalize(img, brightness=conf['normalize_brightness'], verbose=verbose).astype(int)
                 _img = ass.postproc.color_map(_img, conf['color_map_name'])
                 if len(_img.shape) == 3:
                     _img = _img[:,:,::-1]
 
-                cv2.imwrite(_file, _img)
+                cv2.imencode(f'.{_file.split(".")[-1]}', _img)[1].tofile(_file)
 
 
 # GUI逻辑
