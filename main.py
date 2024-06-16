@@ -40,6 +40,26 @@ def _(**strs):
         return strs[lang]
     return strs[default_lang]
 
+import cv2
+import numpy as np
+def raw_file_to_file_ext(file, output_file, output_configs={'img': {'color_map_name': 'orange-enhanced', 'normalize_brightness': 1.0, 'raw': False}}, shifts = [0], correct_light_axis = 2, verbose = 0):
+    imgs = ass.raw_file_to_raw_image(file, shifts, correct_light_axis, verbose)
+
+    for i,img in enumerate(imgs):
+        for sub, conf in output_configs.items():
+            _file = output_file.format(i=i, sub=sub, shift=shifts[i])
+            if verbose > 1:
+                print(f'write to {_file} (i={i}, shift={shifts[i]})')
+            if conf['raw']:
+                cv2.imwrite(_file, np.clip(img, 0, 65535).astype(np.uint16))
+            else:
+                _img = ass.postproc.normalize(img, brightness=conf['normalize_brightness'], verbose=verbose).astype(int)
+                _img = ass.postproc.color_map(_img, conf['color_map_name'])
+                if len(_img.shape) == 3:
+                    _img = _img[:,:,::-1]
+
+                cv2.imwrite(_file, _img)
+
 
 # GUI逻辑
 import os
@@ -62,7 +82,10 @@ class Window(tk.Tk):
             iconfile = os.path.join(os.path.dirname(__file__), iconfile)
         else:
             iconfile = os.path.join(sys.prefix, iconfile)
-        self.iconbitmap(default=iconfile)
+        try:
+            self.iconbitmap(default=iconfile)
+        except:
+            pass
 
         # creating a frame and assigning it to container
         container = tk.Frame(self)
@@ -113,32 +136,49 @@ class MainPage(tk.Frame):
     @async_handler
     async def on_run(self):
         input_folder=self.v_folder.get()
-        output_folder='output/img'
+        output_folder='output'
         raw=False
         correct_light_axis=2
         normalize_brightness=1
         color_map_name='orange-enhanced'
         verbose=0
+        output_configs={
+            'img': {
+                'color_map_name': 'orange-enhanced',
+                'normalize_brightness': 1.0,
+                'raw': False
+            },
+            'gray': {
+                'color_map_name': 'linear',
+                'normalize_brightness': 1.0,
+                'raw': False
+            },
+            'raw': {
+                'raw': True
+            },
+        }
 
         self.w_btn_run['state'] = 'disabled'
-        output_path = os.path.join(input_folder, output_folder)
         files = sorted(glob(os.path.join(input_folder, '*.[sS][eE][rR]')))
-        if len(files) > 0:
-            os.makedirs(output_path, exist_ok=True)
+        for sub in output_configs.keys():
+            output_path = os.path.join(input_folder, output_folder, sub)
+            if len(files) > 0:
+                os.makedirs(output_path, exist_ok=True)
         cnt_failed = 0
         cnt_skipped = 0
         cnt_successful = 0
         ts = time.time()
         for i, file in enumerate(files):
             self.v_info.set(_(zh=f'处理中: {i+1}/{len(files)}', en=f'processing: {i+1}/{len(files)}'))
-            file_out = os.path.join(output_path, Path(file).stem + '.png')
-            if os.path.isfile(file_out):
+            file_out = os.path.join(input_folder, output_folder, '{sub}', Path(file).stem + '.png')
+            exists = [1 if os.path.isfile(file_out.format(sub=sub)) else 0 for sub in output_configs.keys()]
+            if np.sum(exists) == len(output_configs.keys()):
                 print(f'skipped: {file}, output file exists')
                 cnt_skipped += 1
                 continue
             # print(i, file, file_out)
             try:
-                await async_run(ass.raw_file_to_file, file = file, output_file = file_out, raw = raw, correct_light_axis = correct_light_axis, normalize_brightness = normalize_brightness, color_map_name = color_map_name, verbose = verbose)
+                await async_run(raw_file_to_file_ext, file = file, output_file = file_out, output_configs = output_configs, correct_light_axis = correct_light_axis, verbose = verbose)
                 cnt_successful += 1
             except Exception as e:
                 import traceback
@@ -150,6 +190,7 @@ class MainPage(tk.Frame):
         self.w_btn_run['state'] = 'normal'
 
     def on_about(self):
+        import subprocess
         # tk.messagebox.Message(title='about', icon='info', message=f'Author: Harold Liang (https://lcsky.org)').show()
         url = 'https://github.com/liangchen-harold/astrospec'
         if sys.platform=='win32':
